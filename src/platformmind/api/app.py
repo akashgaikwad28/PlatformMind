@@ -2,6 +2,9 @@
 Application factory for PlatformMind.
 """
 
+import os
+os.environ["LANGFUSE_DEBUG"] = "True"
+
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
