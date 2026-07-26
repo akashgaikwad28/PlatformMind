@@ -229,6 +229,33 @@ async def execute_instruction(
         },
     )
 
+    # --- Langfuse: create a direct trace (bypasses decorator entirely) ---
+    try:
+        from langfuse import Langfuse
+        import logging as _logging
+
+        lf = Langfuse()
+        trace = lf.trace(
+            name="platformmind-execute",
+            input={"instruction": payload.instruction, "repository": payload.repository},
+            output={"execution_id": str(data.execution_id), "status": data.execution_status},
+            metadata={"request_id": req_id, "source": "direct_api"},
+        )
+        # Add a generation span for each LLM call that happened
+        trace.generation(
+            name="planner-pipeline",
+            model="llama-3.3-70b-versatile",
+            input={"instruction": payload.instruction},
+            output={"plan_steps": len(data.execution_plan), "confidence": data.confidence_score},
+            metadata={"intent": data.planner.get("intent", "unknown") if isinstance(data.planner, dict) else "unknown"},
+        )
+        lf.flush()
+        _logging.getLogger(__name__).info("Langfuse direct trace sent successfully")
+    except Exception as e:
+        import logging as _logging
+        _logging.getLogger(__name__).error(f"Langfuse direct trace FAILED: {e}")
+
+    # Also flush the decorator context
     try:
         from langfuse.decorators import langfuse_context
         langfuse_context.flush()

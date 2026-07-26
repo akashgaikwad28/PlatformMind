@@ -3,6 +3,19 @@ Application factory for PlatformMind.
 """
 
 import os
+
+# Load .env FIRST, before any other module imports.
+# This ensures Langfuse (and other SDKs) find their env vars at import time.
+import dotenv
+dotenv.load_dotenv()
+
+# Ensure Langfuse SDK finds the host under both env var names.
+# Render has LANGFUSE_HOST set; newer Langfuse SDK versions also look for LANGFUSE_BASE_URL.
+_lf_host = os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
+if _lf_host:
+    os.environ.setdefault("LANGFUSE_BASE_URL", _lf_host)
+    os.environ.setdefault("LANGFUSE_HOST", _lf_host)
+
 os.environ["LANGFUSE_DEBUG"] = "True"
 
 from contextlib import asynccontextmanager
@@ -37,11 +50,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
 
     # Wire the real dependencies!
-    import dotenv
-
     from platformmind.api.container import setup_container
 
-    dotenv.load_dotenv()
     setup_container(app)
 
     yield
