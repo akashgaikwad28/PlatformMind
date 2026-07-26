@@ -565,13 +565,8 @@ class PlatformMindAppService:
 
 
 def setup_container(app: FastAPI) -> None:
-    # Initialize OpenTelemetry for FastAPI
-    try:
-        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-        FastAPIInstrumentor.instrument_app(app)
-    except ImportError:
-        pass  # Graceful degradation if OTel is not installed
+    # OpenTelemetry is disabled to prevent conflicts with Langfuse
+    pass
 
     # We will initialize sync components and set up a task for async DB init
     llm = GroqProvider()
