@@ -3,9 +3,10 @@ FROM python:3.13-slim
 WORKDIR /app
 RUN pip install uv
 
-COPY pyproject.toml .
-RUN uv pip install --system -e .[dev]
-
+# Copy the entire project first so hatchling can find README.md and src/
 COPY . .
+
+# Install production dependencies (not editable, no dev dependencies)
+RUN uv pip install --system .
 
 CMD ["uvicorn", "platformmind.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
