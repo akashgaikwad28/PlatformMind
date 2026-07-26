@@ -9,4 +9,4 @@ COPY . .
 # Install production dependencies (not editable, no dev dependencies)
 RUN uv pip install --system .
 
-CMD ["uvicorn", "platformmind.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "--factory", "platformmind.api.app:create_app", "--host", "0.0.0.0", "--port", "8000"]
