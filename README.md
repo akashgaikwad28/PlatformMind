@@ -2,6 +2,9 @@
 
 > An autonomous, self-learning GitHub operations agent built with Python and FastAPI.
 
+🔥 **Live Demo (Swagger UI)**: [https://platformmind.onrender.com/docs](https://platformmind.onrender.com/docs)
+🌐 **Production API**: `https://platformmind.onrender.com`
+
 PlatformMind is a production-grade AI agent designed to autonomously manage GitHub repositories by interpreting natural language instructions, breaking them down into dependency-mapped plans, and executing them flawlessly. 
 
 It features a built-in memory system that allows it to learn from past executions and synthesize new capabilities on the fly.
