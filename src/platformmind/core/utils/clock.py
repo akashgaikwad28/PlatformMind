@@ -15,4 +15,4 @@ class Clock:
         """
         Get current UTC time.
         """
-        return datetime.now(timezone.utc)
+        return datetime.now(timezone.utc).replace(tzinfo=None)
