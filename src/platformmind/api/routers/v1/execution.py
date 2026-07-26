@@ -41,6 +41,21 @@ async def execute_instruction(
     except ValueError as e:
         from fastapi import HTTPException
 
+        # Trace the failure in Langfuse
+        try:
+            from langfuse import Langfuse
+            lf = Langfuse()
+            lf.trace(
+                name="platformmind-execute-error",
+                input={"instruction": payload.instruction, "repository": payload.repository},
+                output={"error": str(e), "status_code": 422},
+                metadata={"request_id": req_id, "error_type": "ValueError"},
+                level="ERROR",
+            )
+            lf.flush()
+        except Exception:
+            pass
+
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         # Catch Groq connection errors and other unexpected Application Layer errors
@@ -49,6 +64,22 @@ async def execute_instruction(
         from fastapi import HTTPException
 
         logging.getLogger(__name__).error(f"Execution engine failed: {e}")
+
+        # Trace the failure in Langfuse
+        try:
+            from langfuse import Langfuse
+            lf = Langfuse()
+            error_type = "rate_limit" if "rate_limit" in str(e).lower() or "429" in str(e) else "execution_error"
+            lf.trace(
+                name="platformmind-execute-error",
+                input={"instruction": payload.instruction, "repository": payload.repository},
+                output={"error": str(e), "status_code": 503 if "Connection error" in str(e) else 500},
+                metadata={"request_id": req_id, "error_type": error_type},
+                level="ERROR",
+            )
+            lf.flush()
+        except Exception:
+            pass
 
         # If it's a known connection error, return 503
         if "Connection error" in str(e) or "getaddrinfo" in str(e):
