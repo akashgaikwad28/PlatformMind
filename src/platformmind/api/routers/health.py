@@ -60,6 +60,16 @@ async def health_check(request: Request) -> APIResponse[HealthResponse]:
         "healthy" if getattr(app_state, "synthesis_engine", None) else "unhealthy"
     )
 
+    langfuse_auth = False
+    try:
+        from langfuse import Langfuse
+        lf = Langfuse()
+        langfuse_auth = lf.auth_check()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Langfuse health check failed: {e}")
+        langfuse_auth = False
+
     components = {
         "fastapi": "healthy",
         "database": db_status,
@@ -73,6 +83,7 @@ async def health_check(request: Request) -> APIResponse[HealthResponse]:
         "reporting_engine": reporting_status,
         "memory_engine": memory_status,
         "synthesis_engine": synthesis_status,
+        "langfuse_auth_status": "authorized" if langfuse_auth else "unauthorized",
     }
 
     overall_status = (

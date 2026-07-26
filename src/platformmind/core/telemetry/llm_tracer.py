@@ -39,13 +39,14 @@ def observe(*args, **kwargs):
         return wrapper
 
     if not HAS_LANGFUSE:
+        logger.error("HAS_LANGFUSE is False. Langfuse library is not installed correctly.")
         return noop_decorator
 
     # Check for keys. If missing, Langfuse will warn, but we can suppress or just return no-op.
     public_key = os.environ.get("LANGFUSE_PUBLIC_KEY")
     secret_key = os.environ.get("LANGFUSE_SECRET_KEY")
     if not public_key or not secret_key:
-        logger.debug("Langfuse keys missing. LLM Tracing disabled.")
+        logger.error(f"Langfuse keys missing (pub={bool(public_key)}, sec={bool(secret_key)}). LLM Tracing disabled.")
         return noop_decorator
 
     return langfuse_observe(*args, **kwargs)
