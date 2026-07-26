@@ -229,6 +229,12 @@ async def execute_instruction(
         },
     )
 
+    try:
+        from langfuse.decorators import langfuse_context
+        langfuse_context.flush()
+    except Exception:
+        pass
+
     return APIResponse(
         status="success",
         data=data,
