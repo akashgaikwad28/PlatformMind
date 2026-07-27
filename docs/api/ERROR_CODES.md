@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/domain/exceptions/`, `src/platformmind/api/exception_handlers.py`
+Related Source Files: "`src/platformmind/domain/exceptions/`, `src/platformmind/api/exception_handlers.py`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit

@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/application/execution/`
+Related Source Files: "`src/platformmind/application/execution/`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit

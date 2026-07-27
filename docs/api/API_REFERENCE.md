@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/api/routers/`
+Related Source Files: "`src/platformmind/api/routers/`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit
@@ -27,8 +27,7 @@ All v1 endpoints are prefixed with `/api/v1`.
 ## Common Models
 
 ### `APIResponse`
-All successful endpoints wrap their payload in a standard envelope:
-```json
+All successful endpoints wrap their payload in a standard envelope: "```json"
 {
   "success": true,
   "data": { ... }

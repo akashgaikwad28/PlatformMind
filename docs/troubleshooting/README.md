@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/`
+Related Source Files: "`src/platformmind/`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit

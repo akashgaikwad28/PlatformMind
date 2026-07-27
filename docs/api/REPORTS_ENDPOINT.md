@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/api/routers/v1/reports.py`
+Related Source Files: "`src/platformmind/api/routers/v1/reports.py`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit

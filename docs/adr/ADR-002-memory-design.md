@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/application/memory/engine.py`, `src/platformmind/application/interfaces/memory/memory_engine.py`
+Related Source Files: "`src/platformmind/application/memory/engine.py`, `src/platformmind/application/interfaces/memory/memory_engine.py`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit

@@ -1,6 +1,6 @@
 ---
 Last Updated: 2026-07-26
-Related Source Files: `src/platformmind/application/planner/pipeline.py`
+Related Source Files: "`src/platformmind/application/planner/pipeline.py`"
 Applies To Version: 1.0.0
 Maintainer: PlatformMind Team
 Generated From: Repository Audit
@@ -27,8 +27,7 @@ The `MemoryEngine` returns no `Capabilities` that match this exact sequence.
 The `TaskDecomposer` prompts the LLM:
 *"I have tools `CreateMilestoneTool` and `UpdateIssueTool`. Create a DAG."*
 
-The LLM generates:
-```json
+The LLM generates: "```json"
 {
   "steps": [
     {"id": "s1", "tool": "create_milestone", "inputs": {"title": "Q3 Goals"}},
