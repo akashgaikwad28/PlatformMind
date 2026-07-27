@@ -1,5 +1,16 @@
 # PlatformMind
 
+<p align="left">
+  <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  <img src="https://img.shields.io/badge/Langfuse-1E293B?style=for-the-badge" alt="Langfuse" />
+  <img src="https://img.shields.io/badge/jaeger-%2360d0e4.svg?style=for-the-badge&logo=jaeger&logoColor=white" alt="Jaeger" />
+</p>
+
 An autonomous, self-learning platform intelligence agent for GitHub operations, built with Python and FastAPI.
 
 **Live Demo (Swagger UI)**: [https://platformmind.onrender.com/docs](https://platformmind.onrender.com/docs)  
