@@ -1,54 +1,30 @@
-# PlatformMind Demonstration Guide
+# PlatformMind Demo Instructions
 
-This guide outlines a 15-minute video walkthrough to demonstrate that PlatformMind satisfies all assignment requirements.
+The following three instructions will be run live during the walkthrough to demonstrate the core capabilities of PlatformMind, including task decomposition, capability synthesis, and the self-learning loop.
 
-## 1. Project Overview & Architecture (3 mins)
-- Open `FINAL_REPORT.md` and show the Mermaid Architecture Diagram.
-- Highlight the 6 Core Engines: Planner, Execution, Memory, Learning, Synthesis, Reporting.
-- Show the directory structure to prove adherence to Clean Architecture (no business logic in `api/`).
+## Instruction 1: Basic Decomposition and Execution
+**Instruction:** "Create a high-priority bug report for the login timeout issue and assign it the bug label."
 
-## 2. Live Demo 1: Simple Task & Execution (3 mins)
-**Instruction:** "Create a GitHub issue titled 'Login timeout bug' with labels 'bug' and 'high-priority'."
+**Expected Agent Behavior:**
+1. The planner decomposes the instruction into two steps: `create_issue` and `assign_label`.
+2. The agent executes `create_issue` first.
+3. The agent passes the newly generated Issue ID to the `assign_label` tool.
+4. The execution memory logs the API duration and the new issue ID.
 
-**Action:**
-Send a `POST` request to `/api/v1/execute`:
-```json
-{
-  "instruction": "Create a GitHub issue titled 'Login timeout bug' with labels 'bug' and 'high-priority'.",
-  "repository": "my-org/my-repo"
-}
-```
-**Talking Points:**
-- Show the API returning the `execution_id`.
-- Hit the `/api/v1/reports` endpoint and fetch the execution report.
-- Point out the Planner's `Dependency Graph` and the Execution Engine's tool success.
+## Instruction 2: Capability Synthesis at Runtime
+**Instruction:** "Find all open issues assigned to nobody, group them by priority, and create a weekly triage summary issue."
 
-## 3. Live Demo 2: Compound Workflow (3 mins)
-**Instruction:** "Find all open issues without an assignee. Group them by label. Create a new issue summarizing the findings."
+**Expected Agent Behavior:**
+1. The planner attempts to decompose the instruction but detects a capability gap (it doesn't have a native tool to group and format a summary).
+2. The `CapabilitySynthesisEngine` invokes the LLM to dynamically generate a new composite workflow.
+3. The `SandboxTester` uses static LLM analysis to verify the synthesized plan is safe to execute.
+4. The new capability is registered and the agent successfully executes the summary generation.
 
-**Action:**
-Send the instruction to `/api/v1/execute`.
+## Instruction 3: Self-Learning Loop via Knowledge Caching
+**Instruction:** "Find the login timeout bug and close it."
 
-**Talking Points:**
-- Show the Execution Report. Highlight the `Timeline` array demonstrating task decomposition: `search_issues` -> `create_issue`.
-- Emphasize how the Planner decomposed the natural language into sequential, dependency-ordered steps without hardcoded lookup tables.
-
-## 4. Live Demo 3: Capability Synthesis (4 mins)
-**Instruction:** "Review all open issues. Generate a markdown release summary. Create a GitHub issue containing the release summary."
-
-**Action:**
-Send the instruction to `/api/v1/execute`.
-
-**Talking Points:**
-- **Run 1:** Point out in the logs that the Planner failed to find an existing workflow. Show the `Capability Synthesis Engine` spinning up, reasoning about the gap, sandboxing the new workflow, and registering it to Memory.
-- **Run 2:** Execute the *exact same instruction* again.
-- Show the Execution Report: Highlight `capability_reused: true`. Prove that the system did not re-synthesize but instead fetched the new workflow from Capability Memory.
-
-## 5. Learning Improvements & Final Polish (2 mins)
-- Hit the `/api/v1/metrics` endpoint.
-- Show the JSON payload indicating `time_improvement_pct` and `retries_improvement_pct`.
-- Explain how the `Learning Engine` uses EMA to adjust tool confidence scores over time.
-- Open `COMPLIANCE_MATRIX.md` to show that every requirement has been met.
-
----
-*End of Demo.*
+**Expected Agent Behavior:**
+1. **Run 1:** The agent executes a `search_issues` API call to find the ID of the "login timeout bug", and then calls `close_issue`. (Takes 2 API calls).
+2. **Run 2 (Repeated Instruction):** The `PlanOptimizer` interrogates the Execution Memory. It identifies that it previously successfully located this exact bug. 
+3. **Behavior Change:** The agent prunes the `search_issues` step from the plan and injects the cached Issue ID directly into the `close_issue` tool.
+4. **Measurable Result:** The execution succeeds in 1 API call instead of 2, demonstrating a clear drop in latency and API footprint.

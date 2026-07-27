@@ -696,7 +696,7 @@ def setup_container(app: FastAPI) -> None:
     designer = CapabilityDesigner()
     generator = WorkflowGenerator()
     synth_validator = CapabilityValidator()
-    sandbox = SandboxTester()
+    sandbox = SandboxTester(llm)
     registrar = CapabilityRegistrar()
     reuse_mgr = ReuseManager()
 
