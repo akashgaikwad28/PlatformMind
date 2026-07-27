@@ -23,18 +23,18 @@ class SandboxTester:
         Please evaluate the following execution plan for a newly synthesized capability.
         Determine if the sequence of API calls is logical, safe, and likely to succeed.
         
-        Plan Steps: {[step.tool_name for step in plan.steps] if isinstance(plan, ExecutionPlan) and hasattr(plan, 'steps') else str(plan)}
+        Plan Steps: {[step.tool_name for step in plan.steps] if isinstance(plan, ExecutionPlan) and hasattr(plan, "steps") else str(plan)}
         """
-        
+
         schema = {
             "type": "object",
             "properties": {
                 "is_safe": {"type": "boolean"},
-                "reasoning": {"type": "string"}
+                "reasoning": {"type": "string"},
             },
-            "required": ["is_safe", "reasoning"]
+            "required": ["is_safe", "reasoning"],
         }
-        
+
         try:
             result = await self.llm.structured_completion(prompt, schema)
             return result.get("is_safe", False)

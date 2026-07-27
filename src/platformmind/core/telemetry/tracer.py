@@ -7,6 +7,7 @@ def trace_step(span_name: str):
     No-op decorator. OpenTelemetry is disabled to prevent conflicts with Langfuse
     and to stop localhost:4317 timeout errors in Render.
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):

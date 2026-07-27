@@ -30,20 +30,26 @@ class ReasoningEngine:
         
         Analyze if this task can be synthesized using a combination of generic HTTP calls or by composing existing basic tools like search_issues, create_issue, assign_label, update_issue, close_issue, create_comment.
         """
-        
+
         schema = {
             "type": "object",
             "properties": {
-                "is_synthesizable": {"type": "boolean", "description": "Whether this gap can be filled dynamically"},
+                "is_synthesizable": {
+                    "type": "boolean",
+                    "description": "Whether this gap can be filled dynamically",
+                },
                 "suggested_tools": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "List of native tools to compose"
+                    "description": "List of native tools to compose",
                 },
-                "strategy": {"type": "string", "description": "Step-by-step strategy to synthesize"}
+                "strategy": {
+                    "type": "string",
+                    "description": "Step-by-step strategy to synthesize",
+                },
             },
-            "required": ["is_synthesizable", "suggested_tools", "strategy"]
+            "required": ["is_synthesizable", "suggested_tools", "strategy"],
         }
-        
+
         result = await self.llm.structured_completion(prompt, schema)
         return result

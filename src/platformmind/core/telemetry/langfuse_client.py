@@ -24,6 +24,7 @@ def _detect_sdk_version() -> int:
     """Detect the installed Langfuse SDK major version."""
     try:
         import importlib.metadata
+
         version_str = importlib.metadata.version("langfuse")
         major = int(version_str.split(".")[0])
         return major
@@ -31,6 +32,7 @@ def _detect_sdk_version() -> int:
         # If we can't detect, try the new API first
         try:
             from langfuse import get_client  # noqa: F401
+
             return 3  # v3+ has get_client
         except ImportError:
             return 2  # v2 uses Langfuse()
@@ -67,9 +69,11 @@ def get_langfuse():
 
             if _sdk_version >= 3:
                 from langfuse import get_client
+
                 _langfuse_client = get_client()
             else:
                 from langfuse import Langfuse
+
                 _langfuse_client = Langfuse()
 
             logger.info("Langfuse client initialized successfully")

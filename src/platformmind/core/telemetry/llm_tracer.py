@@ -31,12 +31,14 @@ def _get_langfuse_observe():
     # Try v3/v4 first (top-level import)
     try:
         from langfuse import observe as langfuse_observe
+
         return langfuse_observe
     except ImportError:
         pass
 
     # Fall back to v2
     from langfuse.decorators import observe as langfuse_observe
+
     return langfuse_observe
 
 
@@ -72,7 +74,9 @@ def observe(*args, **kwargs):
             except ImportError:
                 return await func(*a, **k)
             except Exception as e:
-                logger.warning(f"Langfuse observe failed, falling back to raw call: {e}")
+                logger.warning(
+                    f"Langfuse observe failed, falling back to raw call: {e}"
+                )
                 return await func(*a, **k)
 
         @functools.wraps(func)
@@ -96,7 +100,9 @@ def observe(*args, **kwargs):
             except ImportError:
                 return func(*a, **k)
             except Exception as e:
-                logger.warning(f"Langfuse observe failed, falling back to raw call: {e}")
+                logger.warning(
+                    f"Langfuse observe failed, falling back to raw call: {e}"
+                )
                 return func(*a, **k)
 
         import asyncio

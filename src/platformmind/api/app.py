@@ -61,6 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Flush and shut down Langfuse gracefully so the last batch of traces is not lost
     from platformmind.core.telemetry.langfuse_client import shutdown_langfuse
+
     shutdown_langfuse()
 
     logger.info(f"Shutting down {settings.APP_NAME}")

@@ -69,6 +69,7 @@ def _send_langfuse_error_trace(
     except Exception:
         pass
 
+
 @router.post(
     "",
     response_model=APIResponse[ExecutionReportResponse],
@@ -97,8 +98,13 @@ async def execute_instruction(
 
         # Trace the failure in Langfuse
         _send_langfuse_error_trace(
-            request, req_id, payload.instruction, payload.repository,
-            e, status_code=422, error_type="ValueError",
+            request,
+            req_id,
+            payload.instruction,
+            payload.repository,
+            e,
+            status_code=422,
+            error_type="ValueError",
         )
 
         raise HTTPException(status_code=422, detail=str(e))
@@ -111,11 +117,20 @@ async def execute_instruction(
         logging.getLogger(__name__).error(f"Execution engine failed: {e}")
 
         # Trace the failure in Langfuse
-        error_type = "rate_limit" if "rate_limit" in str(e).lower() or "429" in str(e) else "execution_error"
+        error_type = (
+            "rate_limit"
+            if "rate_limit" in str(e).lower() or "429" in str(e)
+            else "execution_error"
+        )
         sc = 503 if "Connection error" in str(e) else 500
         _send_langfuse_error_trace(
-            request, req_id, payload.instruction, payload.repository,
-            e, status_code=sc, error_type=error_type,
+            request,
+            req_id,
+            payload.instruction,
+            payload.repository,
+            e,
+            status_code=sc,
+            error_type=error_type,
         )
 
         # If it's a known connection error, return 503
@@ -307,7 +322,9 @@ async def execute_instruction(
         lf = get_langfuse()
         if lf is not None:
             # Read actual model name from app state instead of hardcoding
-            model_name = getattr(request.app.state, "llm_model_name", "llama-3.3-70b-versatile")
+            model_name = getattr(
+                request.app.state, "llm_model_name", "llama-3.3-70b-versatile"
+            )
             sdk_ver = get_sdk_version()
 
             if sdk_ver >= 3:
@@ -315,7 +332,10 @@ async def execute_instruction(
                 with lf.start_as_current_observation(
                     as_type="span",
                     name="platformmind-execute",
-                    input={"instruction": payload.instruction, "repository": payload.repository},
+                    input={
+                        "instruction": payload.instruction,
+                        "repository": payload.repository,
+                    },
                     metadata={"request_id": req_id, "source": "direct_api"},
                 ) as root_span:
                     # Nested generation for the planner LLM call
@@ -326,19 +346,35 @@ async def execute_instruction(
                         input={"instruction": payload.instruction},
                     ) as gen:
                         gen.update(
-                            output={"plan_steps": len(data.execution_plan), "confidence": data.confidence_score},
-                            metadata={"intent": data.planner.get("intent", "unknown") if isinstance(data.planner, dict) else "unknown"},
+                            output={
+                                "plan_steps": len(data.execution_plan),
+                                "confidence": data.confidence_score,
+                            },
+                            metadata={
+                                "intent": data.planner.get("intent", "unknown")
+                                if isinstance(data.planner, dict)
+                                else "unknown"
+                            },
                         )
                     root_span.update(
-                        output={"execution_id": str(data.execution_id), "status": data.execution_status},
+                        output={
+                            "execution_id": str(data.execution_id),
+                            "status": data.execution_status,
+                        },
                     )
                 lf.flush()
             else:
                 # v2: legacy .trace() / .generation() API
                 trace = lf.trace(
                     name="platformmind-execute",
-                    input={"instruction": payload.instruction, "repository": payload.repository},
-                    output={"execution_id": str(data.execution_id), "status": data.execution_status},
+                    input={
+                        "instruction": payload.instruction,
+                        "repository": payload.repository,
+                    },
+                    output={
+                        "execution_id": str(data.execution_id),
+                        "status": data.execution_status,
+                    },
                     metadata={"request_id": req_id, "source": "direct_api"},
                     user_id=request.headers.get("X-User-Id"),
                     session_id=request.headers.get("X-Session-Id"),
@@ -347,8 +383,15 @@ async def execute_instruction(
                     name="planner-pipeline",
                     model=model_name,
                     input={"instruction": payload.instruction},
-                    output={"plan_steps": len(data.execution_plan), "confidence": data.confidence_score},
-                    metadata={"intent": data.planner.get("intent", "unknown") if isinstance(data.planner, dict) else "unknown"},
+                    output={
+                        "plan_steps": len(data.execution_plan),
+                        "confidence": data.confidence_score,
+                    },
+                    metadata={
+                        "intent": data.planner.get("intent", "unknown")
+                        if isinstance(data.planner, dict)
+                        else "unknown"
+                    },
                 )
                 lf.flush()
 

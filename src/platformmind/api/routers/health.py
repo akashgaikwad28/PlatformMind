@@ -63,11 +63,13 @@ async def health_check(request: Request) -> APIResponse[HealthResponse]:
     langfuse_auth = False
     try:
         from platformmind.core.telemetry.langfuse_client import get_langfuse
+
         lf = get_langfuse()
         if lf is not None:
             langfuse_auth = lf.auth_check()
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Langfuse health check failed: {e}")
         langfuse_auth = False
 
@@ -88,9 +90,13 @@ async def health_check(request: Request) -> APIResponse[HealthResponse]:
     }
 
     # Exclude non-critical observability tools from overall health gating
-    critical_components = {k: v for k, v in components.items() if k != "langfuse_auth_status"}
+    critical_components = {
+        k: v for k, v in components.items() if k != "langfuse_auth_status"
+    }
     overall_status = (
-        "healthy" if all(v == "healthy" for v in critical_components.values()) else "degraded"
+        "healthy"
+        if all(v == "healthy" for v in critical_components.values())
+        else "degraded"
     )
 
     data = HealthResponse(
