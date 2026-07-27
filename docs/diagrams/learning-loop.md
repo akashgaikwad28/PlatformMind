@@ -5,13 +5,18 @@ graph TD
     Exec[Execution Engine] --> Result[Execution Result]
     Result --> Learn[Learning Engine]
     
-    Learn --> Metrics[Analyze Metrics (Time, Calls, Retries)]
-    Learn --> Constraints[Extract Constraints]
-    Learn --> Success[Calculate Success Rate]
+    subgraph Learning Engine Process
+        Learn --> AnalyzeFacts[Execution Analyzer: Analyze Facts]
+        AnalyzeFacts --> ExtractMetrics["Metrics Collector: Collect Time, Calls, Retries"]
+        ExtractMetrics --> FetchHistory[Memory Service: Fetch Historical Metrics]
+        FetchHistory --> CalcImprovements[Improvement Calculator: Compare vs History]
+        CalcImprovements --> AnalyzeTrends[Trend Analyzer: Analyze Run History]
+        AnalyzeTrends --> BuildReport[Build Learning Report & Recommendations]
+        BuildReport --> SaveMetrics[Memory Service: Save Current Metrics]
+    end
     
-    Metrics --> EMA[Update Exponential Moving Average]
-    Success --> DB[Store in Learning Repository]
-    Constraints --> DB
+    SaveMetrics --> DB[(Learning Repository)]
+    FetchHistory -.-> DB
     
     DB --> MemEngine[Memory Engine]
     MemEngine --> Planner[Planner]
