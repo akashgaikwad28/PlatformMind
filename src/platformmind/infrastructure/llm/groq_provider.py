@@ -10,6 +10,7 @@ from platformmind.core.telemetry.llm_tracer import observe
 class GroqProvider(LLMProvider):
     def __init__(self, model: str = "llama-3.3-70b-versatile"):
         import os
+
         self.model = model
         # Initialize Groq client using environment variable GROQ_API_KEY, fallback for tests
         api_key = os.environ.get("GROQ_API_KEY", "dummy_test_key")
