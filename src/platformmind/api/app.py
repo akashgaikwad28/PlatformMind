@@ -7,6 +7,7 @@ import os
 # Load .env FIRST, before any other module imports.
 # This ensures Langfuse (and other SDKs) find their env vars at import time.
 import dotenv
+
 dotenv.load_dotenv()
 
 # Ensure Langfuse SDK finds the host under both env var names.

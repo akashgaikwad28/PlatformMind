@@ -1,6 +1,7 @@
 import functools
 from typing import Callable
 
+
 def trace_step(span_name: str):
     """
     No-op decorator. OpenTelemetry is disabled to prevent conflicts with Langfuse

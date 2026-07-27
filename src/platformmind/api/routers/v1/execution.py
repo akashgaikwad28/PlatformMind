@@ -28,7 +28,10 @@ def _send_langfuse_error_trace(
 ) -> None:
     """Send an error trace to Langfuse, compatible with SDK v2/v3/v4."""
     try:
-        from platformmind.core.telemetry.langfuse_client import get_langfuse, get_sdk_version
+        from platformmind.core.telemetry.langfuse_client import (
+            get_langfuse,
+            get_sdk_version,
+        )
 
         lf = get_langfuse()
         if lf is None:
@@ -296,7 +299,10 @@ async def execute_instruction(
 
     # --- Langfuse: create a direct trace (v3/v4 compatible) ---
     try:
-        from platformmind.core.telemetry.langfuse_client import get_langfuse, get_sdk_version
+        from platformmind.core.telemetry.langfuse_client import (
+            get_langfuse,
+            get_sdk_version,
+        )
 
         lf = get_langfuse()
         if lf is not None:
