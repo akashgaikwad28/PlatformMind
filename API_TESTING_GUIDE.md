@@ -259,3 +259,26 @@ These tests prove the system respects user constraints and execution options.
 This project successfully fulfills the **Watermelon Software Autonomous Platform Intelligence Agent** assignment by implementing a multi-agent architectural pipeline. The system provides a highly polished API layer complete with strict Pydantic schemas, comprehensive structured reporting, a dynamic SQLite-backed memory engine, and an autonomous LLM capability synthesis framework. 
 
 Thank you for reviewing PlatformMind!
+
+
+---
+
+## Appendix: Validating GitHub Assignment Requirements (Issues, PRs, Projects, Releases)
+
+To prove to the recruiter that the agent can manage Issues, PRs, Projects, and Releases as per the assignment, you can run the following test cases. Note that tools not natively registered will dynamically trigger the `CapabilitySynthesisEngine` to compose new workflows.
+
+### 1. Issue & Label Management (Native)
+**Instruction:** "Create a high-priority bug report for the login timeout issue and assign it the 'bug' label."
+- **Expected Behavior:** The planner will decompose this into `create_issue` and `assign_label`. It will execute both using the native GitHub tools.
+
+### 2. Project/Milestone Management (Native)
+**Instruction:** "Create a new milestone called 'Q3 MVP Launch'."
+- **Expected Behavior:** The agent will execute this using the natively registered `create_milestone` tool.
+
+### 3. Pull Request Management (Synthesis / Native Comments)
+**Instruction:** "Add an LGTM comment to PR #12 and approve it."
+- **Expected Behavior:** The agent will use the native `create_comment` tool for the comment. For the approval, the Synthesis engine will dynamically compose a new capability to interact with the GitHub PR Reviews API, sandbox test it, and execute it.
+
+### 4. Releases Management (Synthesis)
+**Instruction:** "Draft a new release for tag v0.2.0 titled 'Beta Release' with release notes."
+- **Expected Behavior:** Detecting no native tool for `create_release`, the Synthesis engine will automatically generate the required GitHub REST API workflow, validate it, register it in Capability Memory, and create the release.
