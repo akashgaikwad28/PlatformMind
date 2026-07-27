@@ -3,6 +3,7 @@ Execution Router.
 """
 
 import inspect
+import logging as _logging
 import uuid
 from datetime import datetime
 
@@ -13,7 +14,57 @@ from platformmind.api.schemas.requests import ExecuteRequest
 from platformmind.api.schemas.responses import APIResponse, ExecutionReportResponse
 
 router = APIRouter(prefix="/execute", tags=["Execution"])
+_logger = _logging.getLogger(__name__)
 
+
+def _send_langfuse_error_trace(
+    request: Request,
+    req_id: str,
+    instruction: str,
+    repository: str,
+    error: Exception,
+    status_code: int,
+    error_type: str,
+) -> None:
+    """Send an error trace to Langfuse, compatible with SDK v2/v3/v4."""
+    try:
+        from platformmind.core.telemetry.langfuse_client import get_langfuse, get_sdk_version
+
+        lf = get_langfuse()
+        if lf is None:
+            return
+
+        sdk_ver = get_sdk_version()
+        user_id = request.headers.get("X-User-Id")
+        session_id = request.headers.get("X-Session-Id")
+
+        if sdk_ver >= 3:
+            # v3/v4: use start_as_current_observation context manager
+            with lf.start_as_current_observation(
+                as_type="span",
+                name="platformmind-execute-error",
+                input={"instruction": instruction, "repository": repository},
+                metadata={"request_id": req_id, "error_type": error_type},
+            ) as span:
+                span.update(
+                    output={"error": str(error), "status_code": status_code},
+                    level="ERROR",
+                )
+            lf.flush()
+        else:
+            # v2: use legacy .trace() method
+            lf.trace(
+                name="platformmind-execute-error",
+                input={"instruction": instruction, "repository": repository},
+                output={"error": str(error), "status_code": status_code},
+                metadata={"request_id": req_id, "error_type": error_type},
+                level="ERROR",
+                user_id=user_id,
+                session_id=session_id,
+            )
+            lf.flush()
+    except Exception:
+        pass
 
 @router.post(
     "",
@@ -42,19 +93,10 @@ async def execute_instruction(
         from fastapi import HTTPException
 
         # Trace the failure in Langfuse
-        try:
-            from langfuse import Langfuse
-            lf = Langfuse()
-            lf.trace(
-                name="platformmind-execute-error",
-                input={"instruction": payload.instruction, "repository": payload.repository},
-                output={"error": str(e), "status_code": 422},
-                metadata={"request_id": req_id, "error_type": "ValueError"},
-                level="ERROR",
-            )
-            lf.flush()
-        except Exception:
-            pass
+        _send_langfuse_error_trace(
+            request, req_id, payload.instruction, payload.repository,
+            e, status_code=422, error_type="ValueError",
+        )
 
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
@@ -66,20 +108,12 @@ async def execute_instruction(
         logging.getLogger(__name__).error(f"Execution engine failed: {e}")
 
         # Trace the failure in Langfuse
-        try:
-            from langfuse import Langfuse
-            lf = Langfuse()
-            error_type = "rate_limit" if "rate_limit" in str(e).lower() or "429" in str(e) else "execution_error"
-            lf.trace(
-                name="platformmind-execute-error",
-                input={"instruction": payload.instruction, "repository": payload.repository},
-                output={"error": str(e), "status_code": 503 if "Connection error" in str(e) else 500},
-                metadata={"request_id": req_id, "error_type": error_type},
-                level="ERROR",
-            )
-            lf.flush()
-        except Exception:
-            pass
+        error_type = "rate_limit" if "rate_limit" in str(e).lower() or "429" in str(e) else "execution_error"
+        sc = 503 if "Connection error" in str(e) else 500
+        _send_langfuse_error_trace(
+            request, req_id, payload.instruction, payload.repository,
+            e, status_code=sc, error_type=error_type,
+        )
 
         # If it's a known connection error, return 503
         if "Connection error" in str(e) or "getaddrinfo" in str(e):
@@ -260,38 +294,61 @@ async def execute_instruction(
         },
     )
 
-    # --- Langfuse: create a direct trace (bypasses decorator entirely) ---
+    # --- Langfuse: create a direct trace (v3/v4 compatible) ---
     try:
-        from langfuse import Langfuse
-        import logging as _logging
+        from platformmind.core.telemetry.langfuse_client import get_langfuse, get_sdk_version
 
-        lf = Langfuse()
-        trace = lf.trace(
-            name="platformmind-execute",
-            input={"instruction": payload.instruction, "repository": payload.repository},
-            output={"execution_id": str(data.execution_id), "status": data.execution_status},
-            metadata={"request_id": req_id, "source": "direct_api"},
-        )
-        # Add a generation span for each LLM call that happened
-        trace.generation(
-            name="planner-pipeline",
-            model="llama-3.3-70b-versatile",
-            input={"instruction": payload.instruction},
-            output={"plan_steps": len(data.execution_plan), "confidence": data.confidence_score},
-            metadata={"intent": data.planner.get("intent", "unknown") if isinstance(data.planner, dict) else "unknown"},
-        )
-        lf.flush()
-        _logging.getLogger(__name__).info("Langfuse direct trace sent successfully")
+        lf = get_langfuse()
+        if lf is not None:
+            # Read actual model name from app state instead of hardcoding
+            model_name = getattr(request.app.state, "llm_model_name", "llama-3.3-70b-versatile")
+            sdk_ver = get_sdk_version()
+
+            if sdk_ver >= 3:
+                # v3/v4: use start_as_current_observation context manager
+                with lf.start_as_current_observation(
+                    as_type="span",
+                    name="platformmind-execute",
+                    input={"instruction": payload.instruction, "repository": payload.repository},
+                    metadata={"request_id": req_id, "source": "direct_api"},
+                ) as root_span:
+                    # Nested generation for the planner LLM call
+                    with lf.start_as_current_observation(
+                        as_type="generation",
+                        name="planner-pipeline",
+                        model=model_name,
+                        input={"instruction": payload.instruction},
+                    ) as gen:
+                        gen.update(
+                            output={"plan_steps": len(data.execution_plan), "confidence": data.confidence_score},
+                            metadata={"intent": data.planner.get("intent", "unknown") if isinstance(data.planner, dict) else "unknown"},
+                        )
+                    root_span.update(
+                        output={"execution_id": str(data.execution_id), "status": data.execution_status},
+                    )
+                lf.flush()
+            else:
+                # v2: legacy .trace() / .generation() API
+                trace = lf.trace(
+                    name="platformmind-execute",
+                    input={"instruction": payload.instruction, "repository": payload.repository},
+                    output={"execution_id": str(data.execution_id), "status": data.execution_status},
+                    metadata={"request_id": req_id, "source": "direct_api"},
+                    user_id=request.headers.get("X-User-Id"),
+                    session_id=request.headers.get("X-Session-Id"),
+                )
+                trace.generation(
+                    name="planner-pipeline",
+                    model=model_name,
+                    input={"instruction": payload.instruction},
+                    output={"plan_steps": len(data.execution_plan), "confidence": data.confidence_score},
+                    metadata={"intent": data.planner.get("intent", "unknown") if isinstance(data.planner, dict) else "unknown"},
+                )
+                lf.flush()
+
+            _logger.info("Langfuse trace sent successfully")
     except Exception as e:
-        import logging as _logging
-        _logging.getLogger(__name__).error(f"Langfuse direct trace FAILED: {e}")
-
-    # Also flush the decorator context
-    try:
-        from langfuse.decorators import langfuse_context
-        langfuse_context.flush()
-    except Exception:
-        pass
+        _logger.error(f"Langfuse trace FAILED: {e}")
 
     return APIResponse(
         status="success",

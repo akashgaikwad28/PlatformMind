@@ -5,14 +5,39 @@ IMPORTANT: This module uses a lazy initialization pattern.
 The @observe decorator is applied at class-definition time, but the actual
 Langfuse client is initialized lazily on first use. This avoids the common
 pitfall of importing Langfuse before environment variables are loaded.
+
+Compatible with Langfuse SDK v2 (langfuse.decorators.observe) and
+v3/v4 (langfuse.observe at top level).
 """
 
 import functools
 import logging
 import os
+import threading
 from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
+
+_observe_lock = threading.Lock()
+
+
+def _get_langfuse_observe():
+    """
+    Import the correct @observe decorator depending on SDK version.
+
+    - v3/v4: `from langfuse import observe`
+    - v2: `from langfuse.decorators import observe`
+    """
+    # Try v3/v4 first (top-level import)
+    try:
+        from langfuse import observe as langfuse_observe
+        return langfuse_observe
+    except ImportError:
+        pass
+
+    # Fall back to v2
+    from langfuse.decorators import observe as langfuse_observe
+    return langfuse_observe
 
 
 def observe(*args, **kwargs):
@@ -29,18 +54,19 @@ def observe(*args, **kwargs):
         async def async_wrapper(*a: Any, **k: Any) -> Any:
             # Attempt to use Langfuse at call time (env vars are loaded by now)
             try:
-                from langfuse.decorators import observe as langfuse_observe
-
                 public_key = os.environ.get("LANGFUSE_PUBLIC_KEY")
                 secret_key = os.environ.get("LANGFUSE_SECRET_KEY")
 
                 if not public_key or not secret_key:
                     return await func(*a, **k)
 
-                # Create the actual decorated function on first call and cache it
+                # Thread-safe creation of the decorated function on first call
                 if not hasattr(async_wrapper, "_langfuse_fn"):
-                    decorated = langfuse_observe(*args, **kwargs)(func)
-                    async_wrapper._langfuse_fn = decorated  # type: ignore
+                    with _observe_lock:
+                        if not hasattr(async_wrapper, "_langfuse_fn"):
+                            langfuse_observe = _get_langfuse_observe()
+                            decorated = langfuse_observe(*args, **kwargs)(func)
+                            async_wrapper._langfuse_fn = decorated  # type: ignore
 
                 return await async_wrapper._langfuse_fn(*a, **k)  # type: ignore
             except ImportError:
@@ -52,17 +78,19 @@ def observe(*args, **kwargs):
         @functools.wraps(func)
         def sync_wrapper(*a: Any, **k: Any) -> Any:
             try:
-                from langfuse.decorators import observe as langfuse_observe
-
                 public_key = os.environ.get("LANGFUSE_PUBLIC_KEY")
                 secret_key = os.environ.get("LANGFUSE_SECRET_KEY")
 
                 if not public_key or not secret_key:
                     return func(*a, **k)
 
+                # Thread-safe creation of the decorated function on first call
                 if not hasattr(sync_wrapper, "_langfuse_fn"):
-                    decorated = langfuse_observe(*args, **kwargs)(func)
-                    sync_wrapper._langfuse_fn = decorated  # type: ignore
+                    with _observe_lock:
+                        if not hasattr(sync_wrapper, "_langfuse_fn"):
+                            langfuse_observe = _get_langfuse_observe()
+                            decorated = langfuse_observe(*args, **kwargs)(func)
+                            sync_wrapper._langfuse_fn = decorated  # type: ignore
 
                 return sync_wrapper._langfuse_fn(*a, **k)  # type: ignore
             except ImportError:

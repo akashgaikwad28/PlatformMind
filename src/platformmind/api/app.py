@@ -16,7 +16,9 @@ if _lf_host:
     os.environ.setdefault("LANGFUSE_BASE_URL", _lf_host)
     os.environ.setdefault("LANGFUSE_HOST", _lf_host)
 
-os.environ["LANGFUSE_DEBUG"] = "True"
+# Only enable Langfuse debug logging in development to avoid flooding production logs
+if os.environ.get("APP_ENV", "development") == "development":
+    os.environ["LANGFUSE_DEBUG"] = "True"
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -55,6 +57,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     setup_container(app)
 
     yield
+
+    # Flush and shut down Langfuse gracefully so the last batch of traces is not lost
+    from platformmind.core.telemetry.langfuse_client import shutdown_langfuse
+    shutdown_langfuse()
+
     logger.info(f"Shutting down {settings.APP_NAME}")
 
 

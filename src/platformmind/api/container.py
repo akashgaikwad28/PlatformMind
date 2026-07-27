@@ -813,3 +813,4 @@ def setup_container(app: FastAPI) -> None:
     app.state.memory_engine = memory_engine
     app.state.synthesis_engine = synthesis_engine
     app.state.learning_engine = app_service
+    app.state.llm_model_name = llm.model
