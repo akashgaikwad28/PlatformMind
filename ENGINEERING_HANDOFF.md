@@ -276,19 +276,7 @@ The Planner Pipeline:
 - **PlatformMind:** Merges the strict reliability of Clean Architecture and deterministic execution orchestrators with the reasoning capabilities of LLMs. It plans with AI, but executes with traditional software engineering rigor.
 
 ======================================================
-22. INTERVIEW QUESTIONS
-======================================================
-
-1. Q: How does PlatformMind ensure the LLM doesn't call a tool that doesn't exist? A: Tool selection is constrained by a deterministic matching algorithm against the native Capability Registry.
-2. Q: Why Groq? A: Llama-3 on Groq provides sub-second planning latency, crucial for real-time agentic UX.
-3. Q: Explain the Memory System. A: It tracks historical execution success rates to bias the planner towards proven tools.
-4. Q: How do you handle GitHub rate limits? A: The infrastructure client has built-in retry policies and constraint memory logs limits.
-... *(Representative sample for brevity, demonstrating system knowledge)*
-29. Q: How is telemetry implemented? A: Using Langfuse context managers for nested span tracking of LLM generations within API requests.
-30. Q: What is Clean Architecture's benefit here? A: Isolates external APIs (GitHub, Groq) from core agent planning logic.
-
-======================================================
-23. DEMO FLOW
+22. DEMO FLOW
 ======================================================
 
 1. **Start:** Show the repository is clean. Start the FastAPI server.
@@ -298,7 +286,7 @@ The Planner Pipeline:
 5. **Memory:** Hit `/api/v1/memory` to show the agent has learned from the successful execution, updating the success rate of `create_issue` to 100%.
 
 ======================================================
-24. REPOSITORY STATISTICS
+23. REPOSITORY STATISTICS
 ======================================================
 
 - **Modules:** ~50+ Python files
@@ -310,7 +298,7 @@ The Planner Pipeline:
 - **Approximate LOC:** ~8,000 lines (src + tests)
 
 ======================================================
-25. RECRUITER SUMMARY
+24. RECRUITER SUMMARY
 ======================================================
 
 PlatformMind is an enterprise-grade autonomous AI agent designed for DevOps and Platform Engineering. Built with Python 3.13, FastAPI, and Clean Architecture, it leverages Groq's high-speed LLMs to translate natural language into deterministic execution plans for GitHub repository management. Unlike simple wrappers, it features a persistent memory engine (SQLite/SQLAlchemy) that learns from past executions to optimize future tool selection and constraint handling. With comprehensive OpenTelemetry/Langfuse tracing, strict Pydantic validation, and ~8,000 lines of robust, fully-tested code, PlatformMind bridges the gap between static CI/CD scripts and reliable, production-ready AI operations.
