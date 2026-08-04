@@ -7,7 +7,7 @@ venv/
 env/
 *.sqlite3
 data/
-archived/
+docs/archived/
 !data/.gitkeep
 logs/
 !logs/.gitkeep
